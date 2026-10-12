@@ -1,31 +1,75 @@
 #include <cstdio>
 #include <iostream>
-#include <queue>
-#include <vector>
-#include <set>
-#include <algorithm>
 
 using namespace std;
+
+const int MAX_REQUESTS = 500000;
 
 class ElevatorSystem {
 private:
     int current_floor;
     bool direction_up;  // true for up, false for down
-    set<int> pending_requests;
+    int requests[MAX_REQUESTS];
+    int request_count;
+    
+    // Binary search to find insertion position
+    int find_position(int floor) {
+        int left = 0, right = request_count;
+        while (left < right) {
+            int mid = (left + right) / 2;
+            if (requests[mid] < floor) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        return left;
+    }
+    
+    // Find first request >= current_floor
+    int find_lower_bound(int floor) {
+        int left = 0, right = request_count;
+        while (left < right) {
+            int mid = (left + right) / 2;
+            if (requests[mid] < floor) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+        return left;
+    }
     
 public:
-    ElevatorSystem() : current_floor(0), direction_up(true) {}
+    ElevatorSystem() : current_floor(0), direction_up(true), request_count(0) {}
     
     void add_request(int floor) {
-        pending_requests.insert(floor);
+        int pos = find_position(floor);
+        // Insert at position pos
+        for (int i = request_count; i > pos; i--) {
+            requests[i] = requests[i-1];
+        }
+        requests[pos] = floor;
+        request_count++;
     }
     
     void cancel_request(int floor) {
-        pending_requests.erase(floor);
+        int pos = find_position(floor);
+        // Find the exact position
+        while (pos < request_count && requests[pos] != floor) {
+            pos++;
+        }
+        if (pos < request_count && requests[pos] == floor) {
+            // Remove at position pos
+            for (int i = pos; i < request_count - 1; i++) {
+                requests[i] = requests[i+1];
+            }
+            request_count--;
+        }
     }
     
     void action() {
-        if (pending_requests.empty()) {
+        if (request_count == 0) {
             return;  // No requests, stay still
         }
         
@@ -34,16 +78,15 @@ public:
         
         if (direction_up) {
             // Look for requests at or above current floor
-            auto it = pending_requests.lower_bound(current_floor);
-            if (it != pending_requests.end()) {
-                target_floor = *it;
+            int pos = find_lower_bound(current_floor);
+            if (pos < request_count) {
+                target_floor = requests[pos];
             }
         } else {
             // Look for requests below current floor
-            auto it = pending_requests.lower_bound(current_floor);
-            if (it != pending_requests.begin()) {
-                --it;
-                target_floor = *it;
+            int pos = find_lower_bound(current_floor);
+            if (pos > 0) {
+                target_floor = requests[pos-1];
             }
         }
         
@@ -53,15 +96,14 @@ public:
             
             // Try again with new direction
             if (direction_up) {
-                auto it = pending_requests.lower_bound(current_floor);
-                if (it != pending_requests.end()) {
-                    target_floor = *it;
+                int pos = find_lower_bound(current_floor);
+                if (pos < request_count) {
+                    target_floor = requests[pos];
                 }
             } else {
-                auto it = pending_requests.lower_bound(current_floor);
-                if (it != pending_requests.begin()) {
-                    --it;
-                    target_floor = *it;
+                int pos = find_lower_bound(current_floor);
+                if (pos > 0) {
+                    target_floor = requests[pos-1];
                 }
             }
         }
@@ -69,7 +111,7 @@ public:
         if (target_floor != -1) {
             // Move to target floor and complete request
             current_floor = target_floor;
-            pending_requests.erase(target_floor);
+            cancel_request(target_floor);
         }
     }
     
