@@ -1,0 +1,4 @@
+3
+locate
+add 5
+locate

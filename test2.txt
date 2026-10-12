@@ -1,0 +1,6 @@
+5
+locate
+add 5
+action
+locate
+locate

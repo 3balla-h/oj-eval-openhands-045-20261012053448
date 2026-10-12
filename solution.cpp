@@ -121,30 +121,27 @@ public:
 };
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    
     int n;
-    cin >> n;
+    scanf("%d", &n);
     
     ElevatorSystem elevator;
     
     for (int i = 0; i < n; i++) {
-        string command;
-        cin >> command;
+        char command[20];
+        scanf("%s", command);
         
-        if (command == "action") {
+        if (command[0] == 'a' && command[1] == 'c') {
             elevator.action();
-        } else if (command == "add") {
+        } else if (command[0] == 'a' && command[1] == 'd') {
             int floor;
-            cin >> floor;
+            scanf("%d", &floor);
             elevator.add_request(floor);
-        } else if (command == "cancel") {
+        } else if (command[0] == 'c') {
             int floor;
-            cin >> floor;
+            scanf("%d", &floor);
             elevator.cancel_request(floor);
-        } else if (command == "locate") {
-            cout << elevator.locate() << "\n";
+        } else if (command[0] == 'l') {
+            printf("%d\n", elevator.locate());
         }
     }
     
