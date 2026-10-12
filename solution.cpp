@@ -3,7 +3,7 @@
 
 using namespace std;
 
-const int MAX_REQUESTS = 500000;
+const int MAX_REQUESTS = 500005;
 
 class ElevatorSystem {
 private:
